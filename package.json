@@ -1,0 +1,13 @@
+{
+  "name": "coding-exercises",
+  "version": "0.1.0",
+  "description": "Teaching repository with TypeScript basics and Svelte 5 reactivity exercises.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
