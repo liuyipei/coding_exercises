@@ -205,14 +205,12 @@ export class SoccerBallTrajectoryModel {
 
   private stepFlight(s: State): State {
     const speed = norm(s.v);
-    if (speed < 1e-9) return { ...s, t: s.t + this.p.dt };
-
     const area = Math.PI * this.p.radiusM * this.p.radiusM;
     const cd = speed < this.p.criticalSpeedMs ? this.p.highDrag : this.p.lowDrag;
     const spinParam = (this.p.radiusM * norm(s.w)) / Math.max(speed, 1e-9);
     const cl = Math.min(this.p.maxLift, this.p.kLift * spinParam);
 
-    const dragAcc = scale(normalize(s.v), (-0.5 * this.p.rhoAir * area * cd * speed * speed) / this.p.massKg);
+    const dragAcc = scale(normalizeOrZero(s.v), (-0.5 * this.p.rhoAir * area * cd * speed * speed) / this.p.massKg);
     const magnusDir = normalizeOrZero(cross(s.w, s.v));
     const liftAcc = scale(magnusDir, (0.5 * this.p.rhoAir * area * cl * speed * speed) / this.p.massKg);
 
@@ -248,7 +246,8 @@ export class SoccerBallTrajectoryModel {
 
     const friction = scale(normalize(rel), -this.p.kineticFriction * this.p.massKg * this.p.g);
     const linearAcc = scale(friction, 1 / this.p.massKg);
-    const angularAcc = scale(cross(UP, friction), this.p.radiusM / this.p.inertiaKgM2);
+    const contactOffset = scale(UP, -this.p.radiusM);
+    const angularAcc = scale(cross(contactOffset, friction), 1 / this.p.inertiaKgM2);
 
     const nextV = add(s.v, scale(linearAcc, this.p.dt));
     return {
