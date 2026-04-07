@@ -112,7 +112,8 @@ export class SoccerBallTrajectoryModel {
     let s = this.initialState(launch);
     let bounces = 0;
     let totalDistanceM = 0;
-    let rollStartDistanceM: number | null = null;
+    let rollStartDistanceM: number | null =
+      s.mode === "FLIGHT" ? null : horizontalNorm(s.x);
     const samples: TrajectorySample[] = [snapshot(s)];
 
     while (s.mode !== "STOP" && s.t < this.p.maxTimeS) {
@@ -127,9 +128,9 @@ export class SoccerBallTrajectoryModel {
       }
 
       if (s.mode === "IMPACT") {
-        bounces += 1;
         s = this.stepImpact(s);
         if (Math.abs(s.v.y) > this.p.bounceThresholdMs) {
+          bounces += 1;
           s.mode = "FLIGHT";
         } else {
           s.v.y = 0;
@@ -193,14 +194,31 @@ export class SoccerBallTrajectoryModel {
     const elev = degToRad(launch.elevationDeg);
     const az = degToRad(launch.azimuthDeg);
     const vh = launch.speedMs * Math.cos(elev);
+    const v: Vector3 = { x: vh * Math.cos(az), y: launch.speedMs * Math.sin(elev), z: vh * Math.sin(az) };
+    const airborne = launch.startHeightM > 0 || v.y > 0;
 
-    return {
+    const state: State = {
       x: { x: 0, y: launch.startHeightM, z: 0 },
-      v: { x: vh * Math.cos(az), y: launch.speedMs * Math.sin(elev), z: vh * Math.sin(az) },
+      v,
       w: launch.spinRadS,
-      mode: "FLIGHT",
+      mode: airborne ? "FLIGHT" : "GROUND",
       t: 0,
     };
+
+    if (airborne) return state;
+
+    state.x.y = 0;
+    state.v.y = 0;
+
+    if (horizontalNorm(state.v) < this.p.stopSpeedMs) {
+      return { ...state, mode: "STOP" };
+    }
+
+    if (norm(this.relativeSlipVector(state)) < this.p.slipToleranceMs) {
+      return { ...state, mode: "ROLL" };
+    }
+
+    return state;
   }
 
   private stepFlight(s: State): State {

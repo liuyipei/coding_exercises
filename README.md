@@ -22,4 +22,4 @@ This repository contains small, focused exercises for learners practicing modern
 The Svelte files are code-only teaching examples. Drop them into a Svelte 5 + TypeScript project if you want to run them. Focus on the comments and TODOs to learn how reactive statements behave and how to handle async side effects safely.
 
 ## Added physics exercise
-- **typescript-basics/soccer-ball-trajectory.ts** — Hybrid soccer ball simulation on turf with drag, Magnus lift, bounce, sliding, rolling, and parameter sweeps.
+- **typescript-basics/physics/soccer-ball-trajectory.ts** — Hybrid soccer ball simulation on turf with drag, Magnus lift, bounce, sliding, rolling, and parameter sweeps.
